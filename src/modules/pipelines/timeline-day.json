@@ -1,0 +1,84 @@
+[
+    {
+        "$project": {
+            "year": {
+                "$year": "$start"
+            },
+            "month": {
+                "$month": "$start"
+            },
+            "day": {
+                "$dayOfMonth": "$start"
+            },
+            "deviceLocation": "$deviceLocation",
+            "fileSize": "$fileSize",
+            "doc": "$$ROOT"
+        }
+    },
+    {
+        "$group": {
+            "_id": {
+                "year": "$year",
+                "month": "$month",
+                "day": "$day",
+                "deviceLocation": "$deviceLocation"
+            },
+            "documents": {
+                "$push": "$doc"
+            },
+            "count": {
+                "$sum": 1
+            },
+            "size": {
+                "$sum": "$fileSize"
+            }
+        }
+    },
+    {
+        "$group": {
+            "_id": {
+                "year": "$_id.year",
+                "month": "$_id.month",
+                "day": "$_id.day"
+            },
+            "size": {
+                "$sum": "$size"
+            },
+            "count": {
+                "$sum": "$count"
+            },
+            "devices": {
+                "$push": {
+                    "device": "$_id.deviceLocation",
+                    "count": "$count",
+                    "size": "$size"
+                }
+            }
+        }
+    },
+    {
+        "$addFields": {
+            "date": {
+                "$dateToString": {
+                    "date": {
+                        "$dateFromParts": {
+                            "year": "$_id.year",
+                            "month": "$_id.month",
+                            "day": "$_id.day"
+                        }
+                    },
+                    "format": "%Y-%m-%d"
+                }
+            }
+        }
+    },
+    {
+        "$project": {
+            "_id": 0,
+            "date": 1,
+            "size": 1,
+            "count": 1,
+            "devices": 1
+        }
+    }
+]
