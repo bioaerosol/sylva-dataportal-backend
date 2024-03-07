@@ -1,25 +1,35 @@
 const { MongoClient } = require('mongodb')
 const { DateTime } = require('luxon')
 const timelinePipelineDayRes = require("./pipelines/timeline-day.json")
-const timelinePipelineMonthRes = require("./pipelines/timline-month.json")
+const timelinePipelineYearRes = require("./pipelines/timeline-year.json")
+const timelinePipelineMonthRes = require("./pipelines/timeline-month.json")
 const locationsPipeline = require("./pipelines/locations/locations.json")
 
 
 const Resolution = {
     DAY: 'day',
     MONTH: 'month',
+    YEAR: 'year',
 
-    fromString: (value, /** @type Resolution */ defaultValue = Resolution.DAY) => {
+    fromString: (value, /** @type Resolution */ defaultValue = Resolution.YEAR) => {
         value = value ? value.toLowerCase() : value
         
         if (value === Resolution.MONTH) {
             return Resolution.MONTH
         } else if (value === Resolution.DAY) {
             return Resolution.DAY
+        } else if (value === Resolution.YEAR) {
+            return Resolution.YEAR
         } else {
             return defaultValue
         }
     }
+}
+
+const PipelineForResolution = {
+    "day": timelinePipelineDayRes,
+    "month": timelinePipelineMonthRes,
+    "year": timelinePipelineYearRes
 }
 
 class DataModule {
@@ -41,7 +51,7 @@ class DataModule {
             to = temp
         }
 
-        let pipeline = resolution == Resolution.MONTH ? timelinePipelineMonthRes : timelinePipelineDayRes
+        let pipeline = PipelineForResolution[resolution]
 
         if (from.isValid || to.isValid) {
             const timeFilter = { "$or": [{ start: {} }, { end: {} }] }

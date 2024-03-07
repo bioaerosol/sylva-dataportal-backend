@@ -1,71 +1,80 @@
 [
     {
-      "$unwind": {
-        "path": "$devices"
-      }
-    }, {
-      "$lookup": {
-        "from": "storage", 
-        "localField": "devices", 
-        "foreignField": "deviceLocation", 
-        "as": "storage"
-      }
-    }, {
-      "$unwind": {
-        "path": "$storage"
-      }
-    }, {
-      "$group": {
-        "_id": "$devices", 
-        "code": {
-          "$first": "$code"
-        }, 
-        "country": {
-          "$first": "$country"
-        }, 
-        "name": {
-          "$first": "$name"
-        }, 
-        "totalFileSize": {
-          "$sum": "$storage.fileSize"
-        }, 
-        "totalFileCount": {
-          "$sum": 1
-        }, 
-        "dataStart": {
-          "$min": "$storage.start"
-        }, 
-        "dataEnd": {
-          "$max": "$storage.end"
+        "$unwind": {
+            "path": "$devices"
         }
-      }
-    }, {
-      "$group": {
-        "_id": "$code", 
-        "code": {
-          "$first": "$code"
-        }, 
-        "country": {
-          "$first": "$country"
-        }, 
-        "name": {
-          "$first": "$name"
-        }, 
-        "devices": {
-          "$push": "$$ROOT"
+    },
+    {
+        "$lookup": {
+            "from": "storage",
+            "localField": "devices",
+            "foreignField": "deviceLocation",
+            "as": "storage"
         }
-      }
-    }, {
-      "$project": {
-        "_id": 0, 
-        "code": 1, 
-        "country": 1, 
-        "name": 1, 
-        "devices._id": 1, 
-        "devices.totalFileSize": 1, 
-        "devices.totalFileCount": 1, 
-        "devices.dataStart": 1, 
-        "devices.dataEnd": 1
-      }
+    },
+    {
+        "$unwind": {
+            "path": "$storage"
+        }
+    },
+    {
+        "$group": {
+            "_id": "$devices",
+            "code": {
+                "$first": "$code"
+            },
+            "country": {
+                "$first": "$country"
+            },
+            "name": {
+                "$first": "$name"
+            },
+            "totalFileSize": {
+                "$sum": "$storage.fileSize"
+            },
+            "totalFileCount": {
+                "$sum": 1
+            },
+            "dataStart": {
+                "$min": "$storage.start"
+            },
+            "dataEnd": {
+                "$max": "$storage.end"
+            },
+            "type": {
+                "$first": "$storage.deviceType"
+            }
+        }
+    },
+    {
+        "$group": {
+            "_id": "$code",
+            "code": {
+                "$first": "$code"
+            },
+            "country": {
+                "$first": "$country"
+            },
+            "name": {
+                "$first": "$name"
+            },
+            "devices": {
+                "$push": "$$ROOT"
+            }
+        }
+    },
+    {
+        "$project": {
+            "_id": 0,
+            "code": 1,
+            "country": 1,
+            "name": 1,
+            "devices._id": 1,
+            "devices.totalFileSize": 1,
+            "devices.totalFileCount": 1,
+            "devices.dataStart": 1,
+            "devices.dataEnd": 1,
+            "devices.type": 1
+        }
     }
-  ]
+]

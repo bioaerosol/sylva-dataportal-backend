@@ -28,7 +28,7 @@ app.get("/data/timeline(/)?", async (req, res) => {
     const resolutionValue = Resolution.fromString(resolution)
 
     const result = await new DataModule(config).getTimeline(fromDate, toDate, devicesArray, resolutionValue)
-    res.json({ data: result });
+    res.json(result);
 })
 
 app.get("/locations(/)?", async (req, res) => {

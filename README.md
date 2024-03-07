@@ -14,7 +14,7 @@ This is a tiny web backend to access meta data and storage data via REST API. Th
 - `from`: Start of requested timeline to get storage information about as ISO8601 (incl., w/o timezone, interpreted as UTC). Defaults to "no restriction".
 - `to`: End of requested timeline to get storage information about as ISO8601 (incl., w/o timezone, interpreted as UTC). Defaults to "no restriction".
 - `devices`: Comma-separated list of devices to take into account. Defaults to "all"
-- `resolution`: Resolution of answer's aggregation. Possible values are "DAY" or "MONTH". Defaults to "DAY".
+- `resolution`: Resolution of answer's aggregation. Possible values are "DAY" or "MONTH" or "YEAR". Defaults to "YEAR".
 
 **Response:**
 
