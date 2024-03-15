@@ -29,6 +29,9 @@
             "name": {
                 "$first": "$name"
             },
+            "ebasCode": {
+                "$first": "$ebasCode"
+            },
             "totalFileSize": {
                 "$sum": "$storage.fileSize"
             },
@@ -58,6 +61,9 @@
             "name": {
                 "$first": "$name"
             },
+            "ebasCode": {
+                "$first": "$ebasCode"
+            },
             "devices": {
                 "$push": "$$ROOT"
             }
@@ -74,7 +80,8 @@
             "devices.totalFileCount": 1,
             "devices.dataStart": 1,
             "devices.dataEnd": 1,
-            "devices.type": 1
+            "devices.type": 1,
+            "ebasCode": 1
         }
     }
 ]
