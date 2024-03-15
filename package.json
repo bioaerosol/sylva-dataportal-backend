@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/server --configFile config/config.json",
+    "start": "nodemon src/server.js --configFile config/config.json",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy-test": "npm pack && .local\\deploy-test.bat"
+    "deploy": "npm pack && .local\\deploy.bat"
   },
   "author": "Robert Gebauer",
   "dependencies": {

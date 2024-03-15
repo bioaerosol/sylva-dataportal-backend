@@ -13,7 +13,7 @@ const Resolution = {
 
     fromString: (value, /** @type Resolution */ defaultValue = Resolution.YEAR) => {
         value = value ? value.toLowerCase() : value
-        
+
         if (value === Resolution.MONTH) {
             return Resolution.MONTH
         } else if (value === Resolution.DAY) {
@@ -33,10 +33,10 @@ const PipelineForResolution = {
 }
 
 class DataModule {
-    _config = null;
+    _dbConfig = null;
 
-    constructor(config) {
-        this._config = config;
+    constructor(dbConfig) {
+        this._dbConfig = dbConfig;
     }
 
     async getLocations() {
@@ -44,29 +44,63 @@ class DataModule {
         return await locations.aggregate(locationsPipeline).toArray()
     }
 
-    async getTimeline(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices, /** @type Resolution **/ resolution) {
+    _createTimeFilter(/** @type DateTime **/ from, /** @type DateTime **/ to) {
         if (from > to) {
             const temp = from
             from = to
             to = temp
         }
 
-        let pipeline = PipelineForResolution[resolution]
+        const timeFilter = { "$or": [{ start: {} }, { end: {} }] }
 
+        if (from.isValid) {
+            timeFilter["$or"][0].start = { "$gte": from.toJSDate() }
+            timeFilter["$or"][1].end = { "$gte": from.toJSDate() }
+        }
+        if (to.isValid) {
+            timeFilter["$or"][0].start = { "$lte": to.toJSDate() }
+            timeFilter["$or"][1].end = { "$lte": to.toJSDate() }
+        }
+        if (from.isValid && to.isValid) {
+            timeFilter["$or"].push({ start: { "$lte": from.toJSDate() }, end: { "$gte": to.toJSDate() } })
+        }
+
+        return timeFilter
+    }
+
+    async getIDs(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices) {
+        return await this._getWithPipeline(from, to, devices, [
+            {
+                "$project": {
+                    _id: 0,
+                    id: { "$toString": "$_id" },
+                }
+            },
+            {
+                "$group":
+                {
+                    _id: null,
+                    ids: {
+                        $push: "$id"
+                    }
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "ids": 1
+                }
+            }
+        ])
+    }
+
+    async getTimeline(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices, /** @type Resolution **/ resolution) {
+        return await this._getWithPipeline(from, to, devices, PipelineForResolution[resolution])
+    }
+
+    async _getWithPipeline(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices, pipeline) {
         if (from.isValid || to.isValid) {
-            const timeFilter = { "$or": [{ start: {} }, { end: {} }] }
-
-            if (from.isValid) {
-                timeFilter["$or"][0].start = { "$gte": from.toJSDate() }
-                timeFilter["$or"][1].end = { "$gte": from.toJSDate() }
-            }
-            if (to.isValid) {
-                timeFilter["$or"][0].start = { "$lte": to.toJSDate() }
-                timeFilter["$or"][1].end = { "$lte": to.toJSDate() }
-            }
-            if (from.isValid && to.isValid) {
-                timeFilter["$or"].push({ start: { "$lte": from.toJSDate() }, end: { "$gte": to.toJSDate() } })
-            }
+            const timeFilter = this._createTimeFilter(from, to)
 
             pipeline = [{
                 "$match": timeFilter
@@ -85,14 +119,14 @@ class DataModule {
 
 
     async _getDatabase() {
-        const mongoUrl = `mongodb://${this._config.db.username}:${this._config.db.password}@${this._config.db.host}:${this._config.db.port}/${this._config.db.database}?authSource=admin`;
+        const mongoUrl = `mongodb://${this._dbConfig.username}:${this._dbConfig.password}@${this._dbConfig.host}:${this._dbConfig.port}/${this._dbConfig.database}?authSource=admin`;
         const client = new MongoClient(mongoUrl)
         await client.connect()
         return client.db('sylva')
     }
 
     async _getStorageCollection() {
-        const database = await this._getDatabase()    
+        const database = await this._getDatabase()
         return database.collection('storage')
     }
 
