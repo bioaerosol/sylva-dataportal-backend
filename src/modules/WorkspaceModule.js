@@ -15,7 +15,7 @@ class WorkspaceModule {
         const workspace = {
             createdOn: DateTime.utc().toJSDate(),
             documents: (await this.dataModule.getIDs(from, to, devices))[0].ids,
-            status: 'created'
+            status: 'requested'
         }
 
         await workspaces.insertOne(workspace)
