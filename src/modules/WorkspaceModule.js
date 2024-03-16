@@ -11,10 +11,15 @@ class WorkspaceModule {
     }
 
     async createWorkspace(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices) {
+        const idSearch = await this.dataModule.findIDs(from, to, devices)
+
         const workspaces = await this._getWorkspacesCollection()
+
         const workspace = {
             createdOn: DateTime.utc().toJSDate(),
-            documents: (await this.dataModule.getIDs(from, to, devices))[0].ids,
+            documents: idSearch.ids,
+            totalSize: idSearch.totalSize,
+            fileCount: idSearch.fileCount,
             status: 'requested'
         }
 
@@ -31,7 +36,9 @@ class WorkspaceModule {
                 }, {
                     "$project": {
                         _id: 0,
-                        status: 1
+                        status: 1,
+                        totalSize: 1,
+                        fileCount: 1
                     }
                 }
             

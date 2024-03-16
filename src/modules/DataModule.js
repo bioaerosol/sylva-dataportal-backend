@@ -68,12 +68,13 @@ class DataModule {
         return timeFilter
     }
 
-    async getIDs(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices) {
-        return await this._getWithPipeline(from, to, devices, [
+    async findIDs(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices) {        
+        const idSearch = await this._getWithPipeline(from, to, devices, [
             {
                 "$project": {
                     _id: 0,
                     id: { "$toString": "$_id" },
+                    fileSize: 1
                 }
             },
             {
@@ -82,16 +83,26 @@ class DataModule {
                     _id: null,
                     ids: {
                         $push: "$id"
+                    },
+                    totalSize: {
+                        $sum: "$fileSize"
+                    },
+                    fileCount: {
+                        $sum: 1
                     }
                 }
             },
             {
                 "$project": {
                     "_id": 0,
-                    "ids": 1
+                    "ids": 1,
+                    "totalSize": 1,
+                    "fileCount": 1
                 }
             }
         ])
+
+        return idSearch.length > 0 ? idSearch[0] : { ids: [], totalSize: 0, fileCount: 0 }
     }
 
     async getTimeline(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices, /** @type Resolution **/ resolution) {
