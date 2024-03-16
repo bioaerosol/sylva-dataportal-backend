@@ -48,14 +48,14 @@ app.post("/workspace(/)?", async (req, res) => {
 
     const devicesArray = devices ? devices.split(",") : undefined
     const result = await workspaceModule.createWorkspace(fromDate, toDate, devicesArray)
-
-    res.redirect(`/workspace/${result._id}`)
+    
+    res.redirect(req.path + `/${result._id}`)
 })
 
 app.get("/workspace/:id", async (req, res) => {
     const id = req.params.id
     
-    const result = await new WorkspaceModule(config.webdb).getWorkspace(id)
+    const result = await workspaceModule.getWorkspace(id)
 
     if (result) {
         res.json(result)

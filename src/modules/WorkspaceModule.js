@@ -36,6 +36,7 @@ class WorkspaceModule {
                 }, {
                     "$project": {
                         _id: 0,
+                        id: "$_id",
                         status: 1,
                         totalSize: 1,
                         fileCount: 1
