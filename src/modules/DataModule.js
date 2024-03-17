@@ -45,24 +45,23 @@ class DataModule {
     }
 
     _createTimeFilter(/** @type DateTime **/ from, /** @type DateTime **/ to) {
-        if (from > to) {
+        if (from.isValid && to.isValid && from > to) {
             const temp = from
             from = to
             to = temp
         }
 
-        const timeFilter = { "$or": [{ start: {} }, { end: {} }] }
+        let timeFilter = {}
 
-        if (from.isValid) {
-            timeFilter["$or"][0].start = { "$gte": from.toJSDate() }
-            timeFilter["$or"][1].end = { "$gte": from.toJSDate() }
-        }
-        if (to.isValid) {
-            timeFilter["$or"][0].start = { "$lte": to.toJSDate() }
-            timeFilter["$or"][1].end = { "$lte": to.toJSDate() }
-        }
-        if (from.isValid && to.isValid) {
-            timeFilter["$or"].push({ start: { "$lte": from.toJSDate() }, end: { "$gte": to.toJSDate() } })
+        if (from.isValid && !to.isValid) {
+            // only right border; start must be gte
+            timeFilter = { "start": { "$gte": from.toJSDate() } }
+        } else if (!from.isValid && to.isValid) {
+            // only left border; end must be lt (exlc.)
+            timeFilter = { "end": { "$lt": to.toJSDate() } }
+        } else if (from.isValid && to.isValid) {
+            // both are given; see https://stackoverflow.com/a/26877645/21658445
+            timeFilter = { "start": { "$lt": to.toJSDate() }, "end": { "$gte": from.toJSDate() } }
         }
 
         return timeFilter
