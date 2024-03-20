@@ -42,14 +42,20 @@ app.get("/location(/)?", async (req, res) => {
 })
 
 app.post("/workspace(/)?", async (req, res) => {
-    const { from, to, devices } = req.query
+    const { from, to, devices, token } = req.body
+
+    if (token !== config.token.download) {
+        res.sendStatus(401)
+        return
+    }
+    
     const fromDate = DateTime.fromISO(from, { zone: "utc", setZone: true });
     const toDate = DateTime.fromISO(to, { zone: "utc", setZone: true });
 
     const devicesArray = devices ? devices.split(",") : undefined
     const result = await workspaceModule.createWorkspace(fromDate, toDate, devicesArray)
     
-    res.redirect(req.path + `/${result._id}`)
+    res.status(201).json(await workspaceModule.getWorkspace(result._id))
 })
 
 app.get("/workspace/:id", async (req, res) => {
