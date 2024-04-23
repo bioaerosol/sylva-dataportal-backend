@@ -65,7 +65,7 @@ In short: If you'd like to download level-0 data you need to create a workspace.
 - `devices`: Comma-separated list of devices to take into account. Defaults to "all"
 
 **Response:**
-302 with link to workspace object
+201 with created workspace object
 
 #### Workspace
 **URL:** `/workspace/:id`
@@ -86,8 +86,10 @@ Workspace details such as the status.
 
 Valid status are:
 ```requested``` -- Workspace is requested but not available yet.
-```provided```-- Workspace is provided and files can be donwloaded.
-```expired``` -- Workspace is not available anymore.
+```provided```-- Workspace is provided and files can be downloaded.
+```expired``` -- Workspace is not available anymore. The time until expiration depends on configuration; currently this is six hours.
+
+The files of a workspace in status ```provided``` can be downloaded from SYLVA webserver. Currently, the URL is https://data.sylva.bioaerosol.eu/workspace/<workspace_id>.
 
 ## Development
 To develop this software clone this repository and switch into target folder.
