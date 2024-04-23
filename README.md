@@ -50,7 +50,7 @@ Remarks:
 - count is the number of raw data files
 
 ### Workspace
-The term workspace corresponds to the SYLVA definition of workspace. Workspaces created by SYLVA data Portal are also called "Web Workspace".
+In short: If you'd like to download level-0 data you need to create a workspace. The term workspace corresponds to the SYLVA definition of workspace. Workspaces created by SYLVA Data Portal are also called "Web Workspace".
 #### Workspace Creation
 **URL:** `/workspace`
 
@@ -76,13 +76,18 @@ The term workspace corresponds to the SYLVA definition of workspace. Workspaces 
 
 **Response:**
 
-Workspace details such as the status (either "requested" or "provided").
+Workspace details such as the status.
 
 ```json
 {
     "status": "provided"
 }
 ```
+
+Valid status are:
+```requested``` -- Workspace is requested but not available yet.
+```provided```-- Workspace is provided and files can be donwloaded.
+```expired``` -- Workspace is not available anymore.
 
 ## Development
 To develop this software clone this repository and switch into target folder.
