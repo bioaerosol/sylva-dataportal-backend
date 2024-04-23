@@ -54,8 +54,11 @@ app.post("/workspace(/)?", async (req, res) => {
 
     const devicesArray = devices ? devices.split(",") : undefined
     const result = await workspaceModule.createWorkspace(fromDate, toDate, devicesArray)
-    
-    res.status(201).json(await workspaceModule.getWorkspace(result._id))
+
+    const workspaceReloaded = await workspaceModule.getWorkspace(result._id)
+    workspaceReloaded.href = `${req.protocol}://${req.get('host')}/workspace/${result._id}`
+
+    res.status(201).json(workspaceReloaded)
 })
 
 app.get("/workspace/:id", async (req, res) => {
