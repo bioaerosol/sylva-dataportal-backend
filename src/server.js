@@ -49,8 +49,8 @@ app.post("/workspace(/)?", async (req, res) => {
         return
     }
     
-    const fromDate = DateTime.fromISO(from, { zone: "utc", setZone: true });
-    const toDate = DateTime.fromISO(to, { zone: "utc", setZone: true });
+    const fromDate = from ? DateTime.fromISO(from, { zone: "utc", setZone: true }) : DateTime.utc().startOf("day")
+    const toDate = to ? DateTime.fromISO(to, { zone: "utc", setZone: true }) : DateTime.utc().endOf("day")
 
     const devicesArray = devices ? devices.split(",") : undefined
     const result = await workspaceModule.createWorkspace(fromDate, toDate, devicesArray)

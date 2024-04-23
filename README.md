@@ -60,8 +60,8 @@ In short: If you'd like to download level-0 data you need to create a workspace.
 
 **Optional Parameters:**
 
-- `from`: Start of requested timeline to get storage information about as ISO8601 (incl., w/o timezone, interpreted as UTC). Defaults to "no restriction".
-- `to`: End of requested timeline to get storage information about as ISO8601 (incl., w/o timezone, interpreted as UTC). Defaults to "no restriction".
+- `from`: Start of requested timeline to get storage information about as ISO8601 (incl., w/o timezone, interpreted as UTC). Defaults to "start of today".
+- `to`: End of requested timeline to get storage information about as ISO8601 (incl., w/o timezone, interpreted as UTC). Defaults to "end of today".
 - `devices`: Comma-separated list of devices to take into account. Defaults to "all"
 
 **Response:**
