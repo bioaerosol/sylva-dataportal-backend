@@ -55,10 +55,7 @@ app.post("/workspace(/)?", async (req, res) => {
     const devicesArray = devices ? devices.split(",") : undefined
     const result = await workspaceModule.createWorkspace(fromDate, toDate, devicesArray)
 
-    const workspaceReloaded = await workspaceModule.getWorkspace(result._id)
-    workspaceReloaded.href = `${req.protocol}://${req.get('host')}/workspace/${result._id}`
-
-    res.status(201).json(workspaceReloaded)
+    res.status(201).json(await workspaceModule.getWorkspace(result._id))
 })
 
 app.get("/workspace/:id", async (req, res) => {
@@ -67,7 +64,6 @@ app.get("/workspace/:id", async (req, res) => {
     const result = await workspaceModule.getWorkspace(id)
     
     if (result) {
-        result.href = `${req.protocol}://${req.get('host')}/workspace/${result._id}`
         res.json(result)
     } else {
         res.sendStatus(404)
