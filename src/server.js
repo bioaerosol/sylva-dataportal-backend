@@ -65,8 +65,9 @@ app.get("/workspace/:id", async (req, res) => {
     const id = req.params.id
     
     const result = await workspaceModule.getWorkspace(id)
-
+    
     if (result) {
+        result.href = `${req.protocol}://${req.get('host')}/workspace/${result._id}`
         res.json(result)
     } else {
         res.sendStatus(404)
