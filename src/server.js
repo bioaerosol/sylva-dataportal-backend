@@ -42,20 +42,33 @@ app.get("/location(/)?", async (req, res) => {
 })
 
 app.post("/workspace(/)?", async (req, res) => {
-    const { from, to, devices, token } = req.body
+    const { from, to, devices, token, dataset } = req.body
 
     if (token !== config.token.download) {
         res.sendStatus(401)
         return
     }
     
-    const fromDate = from ? DateTime.fromISO(from, { zone: "utc", setZone: true }) : DateTime.utc().startOf("day")
-    const toDate = to ? DateTime.fromISO(to, { zone: "utc", setZone: true }) : DateTime.utc().endOf("day")
+    let result
 
-    const devicesArray = devices ? devices.split(",") : undefined
-    const result = await workspaceModule.createWorkspace(fromDate, toDate, devicesArray)
+    if (!dataset) {
+        // no dataset given; create workspace by definition of from, to and devices
+        const fromDate = from ? DateTime.fromISO(from, { zone: "utc", setZone: true }) : DateTime.utc().startOf("day")
+        const toDate = to ? DateTime.fromISO(to, { zone: "utc", setZone: true }) : DateTime.utc().endOf("day")
 
-    res.status(201).json(await workspaceModule.getWorkspace(result._id))
+        const devicesArray = devices ? devices.split(",") : undefined
+        result = await workspaceModule.createWorkspace(fromDate, toDate, devicesArray)
+
+    } else {
+        // dataset given; create workspace from dataset (name)
+        result = await workspaceModule.createWorkspaceFromDataset(dataset)
+    }
+
+    if (result) {
+        res.status(201).json(await workspaceModule.getWorkspace(result._id))
+    } else {
+        res.status(404).json({ message: "No documents found." })
+    }
 })
 
 app.get("/workspace/:id", async (req, res) => {

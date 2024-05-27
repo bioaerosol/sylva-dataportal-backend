@@ -32,6 +32,39 @@ const PipelineForResolution = {
     "year": timelinePipelineYearRes
 }
 
+const ID_BASE_PROJECTION = [
+    {
+        "$project": {
+            _id: 0,
+            id: { "$toString": "$_id" },
+            fileSize: 1
+        }
+    },
+    {
+        "$group":
+        {
+            _id: null,
+            ids: {
+                $push: "$id"
+            },
+            totalSize: {
+                $sum: "$fileSize"
+            },
+            fileCount: {
+                $sum: 1
+            }
+        }
+    },
+    {
+        "$project": {
+            "_id": 0,
+            "ids": 1,
+            "totalSize": 1,
+            "fileCount": 1
+        }
+    }
+]
+
 class DataModule {
     _dbConfig = null;
 
@@ -67,39 +100,36 @@ class DataModule {
         return timeFilter
     }
 
-    async findIDs(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices) {        
-        const idSearch = await this._getWithPipeline(from, to, devices, [
+    async findIDsOfDataset(/** @type string **/ datasetName) {
+        const pipeline = [
             {
-                "$project": {
-                    _id: 0,
-                    id: { "$toString": "$_id" },
-                    fileSize: 1
+                '$match': {
+                    'name': datasetName
                 }
-            },
-            {
-                "$group":
-                {
-                    _id: null,
-                    ids: {
-                        $push: "$id"
-                    },
-                    totalSize: {
-                        $sum: "$fileSize"
-                    },
-                    fileCount: {
-                        $sum: 1
-                    }
+            }, {
+                '$lookup': {
+                    'from': 'storage',
+                    'localField': 'documents',
+                    'foreignField': '_id',
+                    'as': 'matched_docs'
                 }
-            },
-            {
-                "$project": {
-                    "_id": 0,
-                    "ids": 1,
-                    "totalSize": 1,
-                    "fileCount": 1
+            }, {
+                '$unwind': '$matched_docs'
+            }, {
+                '$replaceRoot': {
+                    'newRoot': '$matched_docs'
                 }
-            }
-        ])
+            }, ...ID_BASE_PROJECTION
+        ]
+        
+        const storage = await this._getDatasetCollection()
+        const idSearch = await storage.aggregate(pipeline).toArray()
+
+        return idSearch.length > 0 ? idSearch[0] : { ids: [], totalSize: 0, fileCount: 0 }
+    }
+
+    async findIDs(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices) {
+        const idSearch = await this._getWithPipeline(from, to, devices, ID_BASE_PROJECTION)
 
         return idSearch.length > 0 ? idSearch[0] : { ids: [], totalSize: 0, fileCount: 0 }
     }
@@ -145,6 +175,10 @@ class DataModule {
         return database.collection('locations')
     }
 
+    async _getDatasetCollection() {
+        const database = await this._getDatabase()
+        return database.collection('datasets')
+    }
 }
 
 module.exports = { DataModule, Resolution }

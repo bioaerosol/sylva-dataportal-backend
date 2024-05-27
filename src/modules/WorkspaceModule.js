@@ -12,19 +12,20 @@ class WorkspaceModule {
 
     async createWorkspace(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices) {
         const idSearch = await this.dataModule.findIDs(from, to, devices)
-
-        const workspaces = await this._getWorkspacesCollection()
-
-        const workspace = {
-            createdOn: DateTime.utc().toJSDate(),
-            documents: idSearch.ids,
-            totalSize: idSearch.totalSize,
-            fileCount: idSearch.fileCount,
-            status: 'requested'
+        if (idSearch.fileCount) {
+            return await this._createWorkspaceFromIDSearch(idSearch)
+        } else {
+            return null
         }
+    }
 
-        await workspaces.insertOne(workspace)
-        return workspace
+    async createWorkspaceFromDataset(/** @type string **/ datasetName) {
+        const idSearch = await this.dataModule.findIDsOfDataset(datasetName)
+        if (idSearch.fileCount) {
+            return await this._createWorkspaceFromIDSearch(idSearch)
+        } else {
+            return null
+        }
     }
 
     async getWorkspace(/** @type string **/ id) {
@@ -49,6 +50,21 @@ class WorkspaceModule {
         } catch (e) {
             return null
         }
+    }
+
+    async _createWorkspaceFromIDSearch(idSearch) {
+        const workspaces = await this._getWorkspacesCollection()
+
+        const workspace = {
+            createdOn: DateTime.utc().toJSDate(),
+            documents: idSearch.ids,
+            totalSize: idSearch.totalSize,
+            fileCount: idSearch.fileCount,
+            status: 'requested'
+        }
+
+        await workspaces.insertOne(workspace)
+        return workspace
     }
 
     async _getDatabase() {
