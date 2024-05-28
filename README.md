@@ -64,6 +64,10 @@ In short: If you'd like to download level-0 data you need to create a workspace.
 - `to`: End of requested timeline to get storage information about as ISO8601 (incl., w/o timezone, interpreted as UTC). Defaults to "end of today".
 - `devices`: Comma-separated list of devices to take into account. Defaults to "all"
 
+or
+
+- `dataset`: Name of dataset to create a workspace for. For the concept of datasets please refer to SYLVA documentation.
+
 **Response:**
 201 with created workspace object
 
