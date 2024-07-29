@@ -42,13 +42,7 @@ app.get("/location(/)?", async (req, res) => {
 })
 
 app.post("/workspace(/)?", async (req, res) => {
-    const { from, to, devices, token, dataset } = req.body
-
-    if (token !== config.token.download) {
-        res.sendStatus(401)
-        return
-    }
-    
+    const { from, to, devices, dataset } = req.body
     let result
 
     if (!dataset) {
