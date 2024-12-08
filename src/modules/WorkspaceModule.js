@@ -10,19 +10,19 @@ class WorkspaceModule {
         this.dataModule = dataModule
     }
 
-    async createWorkspace(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices) {
+    async createWorkspace(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices, /** @type boolean */ isSticky) {
         const idSearch = await this.dataModule.findIDs(from, to, devices)
         if (idSearch.fileCount) {
-            return await this._createWorkspaceFromIDSearch(idSearch)
+            return await this._createWorkspaceFromIDSearch(idSearch, isSticky)
         } else {
             return null
         }
     }
 
-    async createWorkspaceFromDataset(/** @type string **/ datasetName) {
+    async createWorkspaceFromDataset(/** @type string **/ datasetName, /** @type boolean */ isSticky) {
         const idSearch = await this.dataModule.findIDsOfDataset(datasetName)
         if (idSearch.fileCount) {
-            return await this._createWorkspaceFromIDSearch(idSearch)
+            return await this._createWorkspaceFromIDSearch(idSearch, isSticky)
         } else {
             return null
         }
@@ -52,7 +52,7 @@ class WorkspaceModule {
         }
     }
 
-    async _createWorkspaceFromIDSearch(idSearch) {
+    async _createWorkspaceFromIDSearch(idSearch, isSticky) {
         const workspaces = await this._getWorkspacesCollection()
 
         const workspace = {
@@ -60,7 +60,8 @@ class WorkspaceModule {
             documents: idSearch.ids,
             totalSize: idSearch.totalSize,
             fileCount: idSearch.fileCount,
-            status: 'requested'
+            status: 'requested',
+            sticky: isSticky
         }
 
         await workspaces.insertOne(workspace)

@@ -42,7 +42,9 @@ app.get("/location(/)?", async (req, res) => {
 })
 
 app.post("/workspace(/)?", async (req, res) => {
-    const { from, to, devices, dataset } = req.body
+    const { from, to, devices, dataset, stickyToken } = req.body
+    const isSticky = !!stickyToken && config.stickyTokens.includes(stickyToken)
+
     let result
 
     if (!dataset) {
@@ -51,11 +53,12 @@ app.post("/workspace(/)?", async (req, res) => {
         const toDate = to ? DateTime.fromISO(to, { zone: "utc", setZone: true }) : DateTime.utc().endOf("day")
 
         const devicesArray = devices ? devices.split(",") : undefined
-        result = await workspaceModule.createWorkspace(fromDate, toDate, devicesArray)
+
+        result = await workspaceModule.createWorkspace(fromDate, toDate, devicesArray, isSticky)
 
     } else {
         // dataset given; create workspace from dataset (name)
-        result = await workspaceModule.createWorkspaceFromDataset(dataset)
+        result = await workspaceModule.createWorkspaceFromDataset(dataset, isSticky)
     }
 
     if (result) {

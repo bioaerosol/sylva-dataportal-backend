@@ -58,11 +58,14 @@ In short: If you'd like to download level-0 data you need to create a workspace.
 
 **Description:** Creates a web workspace in status "requested". 
 
-**Optional Parameters:**
+**Request Body:**
+
+JSON holding the optional fields:
 
 - `from`: Start of requested timeline to get storage information about as ISO8601 (incl., w/o timezone, interpreted as UTC). Defaults to "start of today".
 - `to`: End of requested timeline to get storage information about as ISO8601 (incl., w/o timezone, interpreted as UTC). Defaults to "end of today".
 - `devices`: Comma-separated list of devices to take into account. Defaults to "all"
+- `stickyToken`: A valid secret token to make this workspace sticky. If a valid token is provided this workspace will not be deleted after six hours but remains forever. Defaults to "null".
 
 or
 
