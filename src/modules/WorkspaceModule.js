@@ -54,19 +54,20 @@ class WorkspaceModule {
     }
 
     async _createWorkspaceFromIDSearch(idSearch, isSticky) {
-        const workspaces = await this._getWorkspacesCollection()
+        return await this._withWorkspacesCollection(async (workspaces) => {
 
-        const workspace = {
-            createdOn: DateTime.utc().toJSDate(),
-            documents: idSearch.ids,
-            totalSize: idSearch.totalSize,
-            fileCount: idSearch.fileCount,
-            status: 'requested',
-            sticky: isSticky
-        }
+            const workspace = {
+                createdOn: DateTime.utc().toJSDate(),
+                documents: idSearch.ids,
+                totalSize: idSearch.totalSize,
+                fileCount: idSearch.fileCount,
+                status: 'requested',
+                sticky: isSticky
+            }
 
-        await workspaces.insertOne(workspace)
-        return workspace
+            await workspaces.insertOne(workspace)
+            return workspace
+        })
     }
 
     async _getDatabase() {
