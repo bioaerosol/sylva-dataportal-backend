@@ -73,8 +73,7 @@ class DataModule {
     }
 
     async getLocations() {
-        const locations = await this._getLocationsCollection()
-        return await locations.aggregate(locationsPipeline).toArray()
+        return await this._withLocationsCollection((locations) => locations.aggregate(locationsPipeline).toArray())
     }
 
     _createTimeFilter(/** @type DateTime **/ from, /** @type DateTime **/ to) {
@@ -122,8 +121,7 @@ class DataModule {
             }, ...ID_BASE_PROJECTION
         ]
         
-        const storage = await this._getDatasetCollection()
-        const idSearch = await storage.aggregate(pipeline).toArray()
+        const idSearch = await this._withDatasetCollection((dataset) => dataset.aggregate(pipeline).toArray())
 
         return idSearch.length > 0 ? idSearch[0] : { ids: [], totalSize: 0, fileCount: 0 }
     }
@@ -153,8 +151,7 @@ class DataModule {
             }, ...pipeline]
         }
 
-        const storage = await this._getStorageCollection()
-        return await storage.aggregate(pipeline).toArray()
+        return await this._withStorageCollection((storage) => storage.aggregate(pipeline).toArray())
     }
 
 
@@ -165,19 +162,37 @@ class DataModule {
         return client.db('sylva')
     }
 
-    async _getStorageCollection() {
+    async _withStorageCollection(callback) {
         const database = await this._getDatabase()
-        return database.collection('storage')
+        try {
+            const collection = database.collection('storage')
+            return await callback(collection)
+        }
+        finally {
+            await database.client.close()
+        }
     }
 
-    async _getLocationsCollection() {
+    async _withLocationsCollection(callback) {
         const database = await this._getDatabase()
-        return database.collection('locations')
+        try {
+            const collection = database.collection('locations')
+            return await callback(collection)
+        }
+        finally {
+            await database.client.close()
+        }
     }
 
-    async _getDatasetCollection() {
+    async _withDatasetCollection(callback) {
         const database = await this._getDatabase()
-        return database.collection('datasets')
+        try {
+            const collection = database.collection('datasets')
+            return await callback(collection)
+        }
+        finally {
+            await database.client.close()
+        }
     }
 }
 

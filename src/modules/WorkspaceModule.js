@@ -29,27 +29,28 @@ class WorkspaceModule {
     }
 
     async getWorkspace(/** @type string **/ id) {
-        const workspaces = await this._getWorkspacesCollection()
-        try {
-            const matches = await workspaces.aggregate([
-                {
-                    "$match": { _id: new ObjectId(id) }
-                }, {
-                    "$project": {
-                        _id: 0,
-                        id: "$_id",
-                        status: 1,
-                        totalSize: 1,
-                        fileCount: 1
+        return await this._withWorkspacesCollection(async (workspaces) => {
+            try {
+                const matches = await workspaces.aggregate([
+                    {
+                        "$match": { _id: new ObjectId(id) }
+                    }, {
+                        "$project": {
+                            _id: 0,
+                            id: "$_id",
+                            status: 1,
+                            totalSize: 1,
+                            fileCount: 1
+                        }
                     }
-                }
-            
-            ]).toArray()
 
-            return matches[0] || null
-        } catch (e) {
-            return null
-        }
+                ]).toArray()
+
+                return matches[0] || null
+            } catch (e) {
+                return null
+            }
+        })
     }
 
     async _createWorkspaceFromIDSearch(idSearch, isSticky) {
@@ -75,9 +76,14 @@ class WorkspaceModule {
         return client.db('web')
     }
 
-    async _getWorkspacesCollection() {
+    async _withWorkspacesCollection(callback) {
         const database = await this._getDatabase()
-        return database.collection('workspaces')
+        try {
+            const collection = database.collection('workspaces')
+            return await callback(collection)
+        } finally {
+            await database.client.close()
+        }
     }
 
 }
