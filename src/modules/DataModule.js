@@ -186,7 +186,9 @@ class DataModule {
         let devicesToUse = nonHiddenDevices
         if (devices) {
             // If specific devices are requested, only include those that are not hidden
-            devicesToUse = devices.filter(device => nonHiddenDevices.includes(device))
+            // Use Set for O(1) lookup performance
+            const nonHiddenSet = new Set(nonHiddenDevices)
+            devicesToUse = devices.filter(device => nonHiddenSet.has(device))
         }
         
         // Add device filter to pipeline
