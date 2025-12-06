@@ -76,6 +76,41 @@ class DataModule {
         return await this._withLocationsCollection((locations) => locations.aggregate(locationsPipeline).toArray())
     }
 
+    async getNonHiddenDevices() {
+        const pipeline = [
+            {
+                "$match": {
+                    "$or": [
+                        { "hidden": { "$exists": false } },
+                        { "hidden": false }
+                    ]
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$devices"
+                }
+            },
+            {
+                "$group": {
+                    "_id": null,
+                    "devices": {
+                        "$push": "$devices"
+                    }
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "devices": 1
+                }
+            }
+        ]
+        
+        const result = await this._withLocationsCollection((locations) => locations.aggregate(pipeline).toArray())
+        return result.length > 0 ? result[0].devices : []
+    }
+
     _createTimeFilter(/** @type DateTime **/ from, /** @type DateTime **/ to) {
         if (from.isValid && to.isValid && from > to) {
             const temp = from
@@ -100,6 +135,9 @@ class DataModule {
     }
 
     async findIDsOfDataset(/** @type string **/ datasetName) {
+        // Get non-hidden devices
+        const nonHiddenDevices = await this.getNonHiddenDevices()
+        
         const pipeline = [
             {
                 '$match': {
@@ -117,6 +155,10 @@ class DataModule {
             }, {
                 '$replaceRoot': {
                     'newRoot': '$matched_docs'
+                }
+            }, {
+                '$match': {
+                    'deviceLocation': { '$in': nonHiddenDevices }
                 }
             }, ...ID_BASE_PROJECTION
         ]
@@ -137,17 +179,34 @@ class DataModule {
     }
 
     async _getWithPipeline(/** @type DateTime **/ from, /** @type DateTime **/ to, /** @type string[] **/ devices, pipeline) {
+        // Get non-hidden devices
+        const nonHiddenDevices = await this.getNonHiddenDevices()
+        
+        // Filter devices to only include non-hidden ones
+        let devicesToUse = nonHiddenDevices
+        if (devices) {
+            // If specific devices are requested, only include those that are not hidden
+            devicesToUse = devices.filter(device => nonHiddenDevices.includes(device))
+        }
+        
+        // Add device filter to pipeline
+        if (devicesToUse.length > 0) {
+            pipeline = [{
+                "$match": { deviceLocation: { "$in": devicesToUse } }
+            }, ...pipeline]
+        } else {
+            // No devices to show (all requested devices are hidden or no non-hidden devices exist)
+            // Return empty result by matching nothing
+            pipeline = [{
+                "$match": { _id: null }
+            }, ...pipeline]
+        }
+        
         if (from.isValid || to.isValid) {
             const timeFilter = this._createTimeFilter(from, to)
 
             pipeline = [{
                 "$match": timeFilter
-            }, ...pipeline]
-        }
-
-        if (devices) {
-            pipeline = [{
-                "$match": { deviceLocation: { "$in": devices } }
             }, ...pipeline]
         }
 
