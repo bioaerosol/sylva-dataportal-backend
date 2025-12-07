@@ -1,5 +1,13 @@
 [
     {
+        "$match": {
+            "$or": [
+                { "hidden": { "$exists": false } },
+                { "hidden": false }
+            ]
+        }
+    },
+    {
         "$unwind": {
             "path": "$devices"
         }
